@@ -1,0 +1,9 @@
+# básico para Node/JS + web
+echo node_modules/>>.gitignore
+echo .env>>.gitignore
+echo dist/>>.gitignore
+echo build/>>.gitignore
+echo coverage/>>.gitignore
+echo .turbo/>>.gitignore
+echo .next/>>.gitignore
+echo .DS_Store>>.gitignore
