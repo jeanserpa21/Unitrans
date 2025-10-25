@@ -104,10 +104,14 @@ const LoginPage = () => {
             </button>
           </form>
 
+          {/* Link de Cadastro */}
           <div className="mt-6 text-center">
             <p className="text-gray-700 text-sm">
               Não tem conta?{' '}
-              <button className="text-unitrans-dark font-bold hover:underline">
+              <button 
+                onClick={() => navigate('/cadastro')}
+                className="text-unitrans-dark font-bold hover:underline"
+              >
                 Cadastre-se
               </button>
             </p>

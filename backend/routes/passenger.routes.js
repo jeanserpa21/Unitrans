@@ -9,8 +9,14 @@ router.use(authorize(['PASSAGEIRO']));
 // GET /api/passageiros/me - Perfil
 router.get('/me', passengerController.getProfile);
 
+// PUT /api/passageiros/me - Atualizar Perfil
+router.put('/me', passengerController.updateProfile);
+
 // GET /api/passageiros/viagem-hoje - Viagem do dia
 router.get('/viagem-hoje', passengerController.getTodayTrip);
+
+// GET /api/passageiros/solicitacoes - Listar solicitações ← ADICIONE ESTA LINHA
+router.get('/solicitacoes', passengerController.getSolicitacoes);
 
 // POST /api/passageiros/check-in-out - Check-in ou Check-out
 router.post('/check-in-out', passengerController.checkInOut);

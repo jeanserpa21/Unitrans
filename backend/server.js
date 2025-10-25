@@ -5,7 +5,7 @@ const helmet = require('helmet');
 
 const app = express();
 
-// Middlewares
+// 🧠 Middlewares de segurança e CORS
 app.use(helmet());
 app.use(cors({
   origin: '*',
@@ -13,47 +13,49 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// IMPORTAR ROTAS (PRIMEIRO IMPORTA, DEPOIS USA!)
+// 🧾 Limite aumentado para uploads grandes (como base64)
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// 🔗 Importar rotas
 const authRoutes = require('./routes/auth.routes');
 const passengerRoutes = require('./routes/passenger.routes');
 const driverRoutes = require('./routes/driver.routes');
 const adminRoutes = require('./routes/admin.routes');
 
-// USAR ROTAS (AGORA SIM PODE USAR!)
+// 🚏 Usar rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/passageiros', passengerRoutes);
 app.use('/api/motoristas', driverRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Rota principal
+// 🏠 Rota principal
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: '🚌 UniTrans API está funcionando!',
     timestamp: new Date().toISOString(),
     status: 'online'
   });
 });
 
-// Health check
+// 🩺 Health check
 app.get('/health', (req, res) => {
-  res.json({ 
+  res.json({
     status: 'OK',
     database: 'connected',
     timestamp: new Date().toISOString()
   });
 });
 
-// Rotas de teste (se você tiver)
+// 🔍 Rotas de teste
 app.get('/test/usuarios', async (req, res) => {
   try {
     const db = require('./config/database');
     const result = await db.query('SELECT id, nome, email, papel FROM usuarios');
-    res.json({ 
+    res.json({
       total: result.rows.length,
-      usuarios: result.rows 
+      usuarios: result.rows
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -68,18 +70,18 @@ app.get('/test/viagens', async (req, res) => {
       FROM viagens v
       INNER JOIN linhas l ON v.linha_id = l.id
     `);
-    res.json({ 
+    res.json({
       total: result.rows.length,
-      viagens: result.rows 
+      viagens: result.rows
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 });
 
-// Error handler
+// 🧯 Tratamento global de erros
 app.use((err, req, res, next) => {
-  console.error('❌ Erro:', err.stack);
+  console.error('❌ Erro interno:', err.stack);
   res.status(500).json({ error: 'Erro interno do servidor' });
 });
 
