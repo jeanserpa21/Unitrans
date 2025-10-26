@@ -24,6 +24,9 @@ router.get('/linhas', adminController.getLines);
 router.post('/linhas', adminController.createLine);
 router.put('/linhas/:id', adminController.updateLine);
 router.put('/linhas/:id/motorista', adminController.assignDriver);
+router.get('/linhas', adminController.getLines);
+router.get('/linhas/:linhaId/passageiros', adminController.getLinePassengers); // ← ADICIONAR
+router.put('/linhas/:linhaId/configuracao', adminController.updateLineConfig); // ← ADICIONAR
 
 // === PONTOS ===
 router.get('/linhas/:linhaId/pontos', adminController.getPoints);

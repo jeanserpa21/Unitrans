@@ -4,11 +4,33 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/auth/LoginPage';
 import CadastroPage from './pages/auth/cadastroPage';
 
-// ✅ Novos imports
+// Páginas do Passageiro
 import PassengerDashboardPage from './pages/passenger/DashboardPage';
 import QRCodePage from './pages/passenger/QRCodePage';
 import ProfilePage from './pages/passenger/ProfilePage';
-import SolicitarCaronaPage from './pages/passenger/SolicitarCaronaPage'; // ✅ Novo import
+import SolicitarCaronaPage from './pages/passenger/SolicitarCaronaPage';
+
+// Páginas do Motorista
+import DriverDashboard from './pages/driver/Dashboard';
+import PassengersPage from './pages/driver/Passengers';
+import RoutePointsPage from './pages/driver/RoutePoints';
+import HistoryPage from './pages/driver/History';
+import DriverProfilePage from './pages/driver/Profile';
+import DashboardNew from './pages/driver/DashboardNew';
+import TripInProgress from './pages/driver/TripInProgress';
+import SendMessage from './pages/driver/SendMessage';
+
+// Páginas do Admin
+import AdminDashboard from './pages/admin/Dashboard';
+import LinesPage from './pages/admin/Lines';
+import SecretaryPage from './pages/admin/Secretary';
+import DriversPage from './pages/admin/Drivers';
+import VehiclesPage from './pages/admin/Vehicles';
+import ReportsPage from './pages/admin/Reports';
+import NoticesPage from './pages/admin/Notices'; // <-- NOVO
+
+// Componentes do Admin
+import AdminSidebar from './components/admin/Sidebar';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
@@ -21,52 +43,10 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     );
   }
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (allowedRoles && !allowedRoles.includes(user.papel)) {
-    return <Navigate to="/" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
+  if (allowedRoles && !allowedRoles.includes(user.papel)) return <Navigate to="/" replace />;
 
   return children;
-};
-
-// Dashboards inline
-const DriverDashboard = () => {
-  const { user, logout } = useAuth();
-  return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Dashboard do Motorista</h1>
-          <button onClick={logout} className="btn btn-secondary">Sair</button>
-        </div>
-        <div className="card">
-          <h2 className="text-xl font-semibold mb-2">Olá, {user.nome}! 🚗</h2>
-          <p className="text-gray-600">Bem-vindo ao painel do motorista.</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const AdminDashboard = () => {
-  const { user, logout } = useAuth();
-  return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Dashboard do Admin</h1>
-          <button onClick={logout} className="btn btn-secondary">Sair</button>
-        </div>
-        <div className="card">
-          <h2 className="text-xl font-semibold mb-2">Olá, {user.nome}! 👨‍💼</h2>
-          <p className="text-gray-600">Bem-vindo ao painel administrativo.</p>
-        </div>
-      </div>
-    </div>
-  );
 };
 
 function App() {
@@ -74,11 +54,11 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Rotas Públicas */}
+          {/* ==================== ROTAS PÚBLICAS ==================== */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/cadastro" element={<CadastroPage />} />
 
-          {/* Rotas Protegidas - Passageiro */}
+          {/* ==================== ROTAS DO PASSAGEIRO ==================== */}
           <Route
             path="/passageiro"
             element={
@@ -87,8 +67,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* ✅ Nova rota - Solicitar Carona */}
           <Route
             path="/passageiro/solicitar-carona"
             element={
@@ -97,8 +75,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* ✅ Nova rota - QR Code */}
           <Route
             path="/passageiro/qrcode"
             element={
@@ -107,8 +83,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* ✅ Nova rota - Perfil */}
           <Route
             path="/passageiro/perfil"
             element={
@@ -118,17 +92,73 @@ function App() {
             }
           />
 
-          {/* Motorista */}
+          {/* ==================== ROTAS DO MOTORISTA ==================== */}
           <Route
             path="/motorista"
+            element={
+              <ProtectedRoute allowedRoles={['MOTORISTA']}>
+                <DashboardNew />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/motorista/viagem-andamento"
+            element={
+              <ProtectedRoute allowedRoles={['MOTORISTA']}>
+                <TripInProgress />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/motorista/dashboard"
             element={
               <ProtectedRoute allowedRoles={['MOTORISTA']}>
                 <DriverDashboard />
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/motorista/passageiros"
+            element={
+              <ProtectedRoute allowedRoles={['MOTORISTA']}>
+                <PassengersPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/motorista/pontos"
+            element={
+              <ProtectedRoute allowedRoles={['MOTORISTA']}>
+                <RoutePointsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/motorista/historico"
+            element={
+              <ProtectedRoute allowedRoles={['MOTORISTA']}>
+                <HistoryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/motorista/perfil"
+            element={
+              <ProtectedRoute allowedRoles={['MOTORISTA']}>
+                <DriverProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/motorista/mensagem"
+            element={
+              <ProtectedRoute allowedRoles={['MOTORISTA']}>
+                <SendMessage />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Administrador */}
+          {/* ==================== ROTAS DO ADMINISTRADOR ==================== */}
           <Route
             path="/admin"
             element={
@@ -137,8 +167,57 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin/linhas"
+            element={
+              <ProtectedRoute allowedRoles={['ADM']}>
+                <LinesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/secretaria"
+            element={
+              <ProtectedRoute allowedRoles={['ADM']}>
+                <SecretaryPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/motoristas"
+            element={
+              <ProtectedRoute allowedRoles={['ADM']}>
+                <DriversPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/veiculos"
+            element={
+              <ProtectedRoute allowedRoles={['ADM']}>
+                <VehiclesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/relatorios"
+            element={
+              <ProtectedRoute allowedRoles={['ADM']}>
+                <ReportsPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* Avisos (fora de qualquer layout com sidebar) */}
+          <Route
+            path="/admin/avisos"
+            element={
+              <ProtectedRoute allowedRoles={['ADM']}>
+                <NoticesPage />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* Redirecionamento padrão */}
+          {/* ==================== REDIRECIONAMENTO PADRÃO ==================== */}
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>

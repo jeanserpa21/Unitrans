@@ -79,6 +79,24 @@ app.get('/test/viagens', async (req, res) => {
   }
 });
 
+// 🔧 ENDPOINT TEMPORÁRIO - Gerar hash correto
+app.post('/dev/gerar-hash', async (req, res) => {
+  const bcrypt = require('bcrypt');
+  const { senha } = req.body;
+
+  if (!senha) {
+    return res.status(400).json({ error: 'Informe a senha no corpo da requisição' });
+  }
+
+  const hash = await bcrypt.hash(senha, 10);
+
+  res.json({
+    senha,
+    hash,
+    tamanho: hash.length
+  });
+});
+
 // 🧯 Tratamento global de erros
 app.use((err, req, res, next) => {
   console.error('❌ Erro interno:', err.stack);
@@ -87,6 +105,7 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 3000;
 
+// 🚀 Inicialização do servidor
 app.listen(PORT, () => {
   console.log(`
 ╔═══════════════════════════════════════════╗

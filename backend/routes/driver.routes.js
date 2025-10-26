@@ -6,19 +6,17 @@ const { authenticate, authorize } = require('../middlewares/auth.middleware');
 router.use(authenticate);
 router.use(authorize(['MOTORISTA']));
 
-// GET /api/motoristas/viagem-hoje - Viagem do dia
+// ✅ ROTAS ORIGINAIS
 router.get('/viagem-hoje', driverController.getTodayTrip);
-
-// POST /api/motoristas/iniciar-viagem - Iniciar viagem
 router.post('/iniciar-viagem', driverController.startTrip);
-
-// POST /api/motoristas/finalizar-viagem - Finalizar viagem
 router.post('/finalizar-viagem', driverController.endTrip);
-
-// GET /api/motoristas/historico - Histórico
 router.get('/historico', driverController.getHistory);
-
-// POST /api/motoristas/mensagens - Enviar mensagem
 router.post('/mensagens', driverController.sendMessage);
+
+// 🆕 ROTAS NOVAS
+router.get('/passageiros', driverController.getPassengers);
+router.get('/pontos', driverController.getRoutePoints);
+router.post('/validar-qrcode', driverController.validateQRCode);
+router.post('/anunciar-ponto', driverController.announceNextPoint);
 
 module.exports = router;

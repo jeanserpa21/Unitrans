@@ -52,7 +52,7 @@ class AdminService {
   /**
    * Listar passageiros
    */
-  async getPassengers({ aprovado, page = 1, limit = 20 }) {
+  async getPassengers({ aprovado, page = 1, limit = 20 } = {}) {
     const offset = (page - 1) * limit;
     let whereClause = '1=1';
     const params = [];
@@ -72,6 +72,7 @@ class AdminService {
         pt.nome as ponto_padrao,
         l.nome as linha,
         p.aprovado,
+        p.status,
         p.criado_em,
         EXTRACT(DAY FROM NOW() - p.criado_em) as dias_aguardando
       FROM passageiros p
@@ -571,6 +572,49 @@ class AdminService {
     
     const result = await db.query(query, params);
     return result.rows;
+  }
+
+  /**
+   * Buscar passageiros de uma linha específica
+   */
+  async getLinePassengers(linhaId) {
+    const query = `
+      SELECT 
+        p.id,
+        u.nome,
+        u.email,
+        p.curso,
+        p.status,
+        pt.nome as ponto_nome,
+        uni.nome as universidade,
+        p.dias_transporte
+      FROM passageiros p
+      INNER JOIN usuarios u ON p.usuario_id = u.id
+      INNER JOIN pontos pt ON p.ponto_padrao_id = pt.id
+      INNER JOIN linhas l ON pt.linha_id = l.id
+      LEFT JOIN universidades uni ON p.universidade_id = uni.id
+      WHERE l.id = $1 AND p.status = 'APROVADO'
+      ORDER BY pt.ordem, u.nome
+    `;
+    
+    const result = await db.query(query, [linhaId]);
+    return { passageiros: result.rows };
+  }
+
+  /**
+   * Atualizar configurações da linha (horários)
+   */
+  async updateLineConfig(linhaId, { horario_inicio, horario_fim }) {
+    const query = `
+      UPDATE linhas
+      SET horario_inicio = $2, horario_fim = $3
+      WHERE id = $1
+      RETURNING *
+    `;
+    
+    const result = await db.query(query, [linhaId, horario_inicio, horario_fim]);
+    if (result.rows.length === 0) throw new Error('LINHA_NAO_ENCONTRADA');
+    return result.rows[0];
   }
 }
 

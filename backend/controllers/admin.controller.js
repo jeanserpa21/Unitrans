@@ -7,406 +7,231 @@ exports.getDashboard = async (req, res) => {
   try {
     const { data } = req.query;
     const dashboard = await adminService.getDashboard(data);
-    return res.json(dashboard);
+    res.json(dashboard);
   } catch (error) {
-    console.error('Erro ao buscar dashboard:', error);
-    return res.status(500).json({ error: 'Erro ao buscar dashboard' });
+    console.error('Erro no getDashboard:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
 /**
- * Listar passageiros
+ * Passageiros
  */
 exports.getPassengers = async (req, res) => {
   try {
-    const { aprovado, page, limit } = req.query;
-    const result = await adminService.getPassengers({ aprovado, page, limit });
-    return res.json(result);
+    const result = await adminService.getPassengers();
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao listar passageiros:', error);
-    return res.status(500).json({ error: 'Erro ao listar passageiros' });
+    console.error('Erro no getPassengers:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-/**
- * Aprovar passageiro
- */
 exports.approvePassenger = async (req, res) => {
   try {
     const { id } = req.params;
-    const adminId = req.user.id;
-    
-    const result = await adminService.approvePassenger(id, adminId);
-    
-    return res.json({
-      success: true,
-      message: 'Passageiro aprovado com sucesso!',
-      passageiro: result
-    });
+    const result = await adminService.approvePassenger(parseInt(id));
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao aprovar passageiro:', error);
-    
-    if (error.message === 'PASSAGEIRO_NAO_ENCONTRADO') {
-      return res.status(404).json({ error: 'Passageiro não encontrado' });
-    }
-    
-    return res.status(500).json({ error: 'Erro ao aprovar passageiro' });
+    console.error('Erro no approvePassenger:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-/**
- * Recusar passageiro
- */
 exports.rejectPassenger = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await adminService.rejectPassenger(id);
-    
-    return res.json({
-      success: true,
-      message: result.message
-    });
+    const result = await adminService.rejectPassenger(parseInt(id));
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao recusar passageiro:', error);
-    
-    if (error.message === 'PASSAGEIRO_NAO_ENCONTRADO') {
-      return res.status(404).json({ error: 'Passageiro não encontrado' });
-    }
-    
-    return res.status(500).json({ error: 'Erro ao recusar passageiro' });
+    console.error('Erro no rejectPassenger:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
 /**
- * Listar motoristas
+ * Motoristas
  */
 exports.getDrivers = async (req, res) => {
   try {
-    const drivers = await adminService.getDrivers();
-    return res.json({ motoristas: drivers });
+    const result = await adminService.getDrivers();
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao listar motoristas:', error);
-    return res.status(500).json({ error: 'Erro ao listar motoristas' });
+    console.error('Erro no getDrivers:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-/**
- * Criar motorista
- */
 exports.createDriver = async (req, res) => {
   try {
-    const { nome, email, senha, cnh } = req.body;
-    
-    if (!nome || !email || !senha || !cnh) {
-      return res.status(400).json({ 
-        error: 'Nome, email, senha e CNH são obrigatórios' 
-      });
-    }
-    
-    const driver = await adminService.createDriver({ nome, email, senha, cnh });
-    
-    return res.status(201).json({
-      success: true,
-      message: 'Motorista criado com sucesso!',
-      motorista: driver
-    });
+    const driverData = req.body;
+    const result = await adminService.createDriver(driverData);
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao criar motorista:', error);
-    
-    if (error.message === 'EMAIL_JA_EXISTE') {
-      return res.status(400).json({ error: 'Email já cadastrado' });
-    }
-    
-    return res.status(500).json({ error: 'Erro ao criar motorista' });
+    console.error('Erro no createDriver:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-/**
- * Atualizar motorista
- */
 exports.updateDriver = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nome, email, cnh, ativo } = req.body;
-    
-    const result = await adminService.updateDriver(id, { nome, email, cnh, ativo });
-    
-    return res.json({
-      success: true,
-      message: 'Motorista atualizado com sucesso!',
-      motorista: result
-    });
+    const driverData = req.body;
+    const result = await adminService.updateDriver(parseInt(id), driverData);
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao atualizar motorista:', error);
-    return res.status(500).json({ error: 'Erro ao atualizar motorista' });
+    console.error('Erro no updateDriver:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
 /**
- * Listar linhas
+ * Linhas
  */
 exports.getLines = async (req, res) => {
   try {
-    const lines = await adminService.getLines();
-    return res.json({ linhas: lines });
+    const result = await adminService.getLines();
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao listar linhas:', error);
-    return res.status(500).json({ error: 'Erro ao listar linhas' });
+    console.error('Erro no getLines:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-/**
- * Criar linha
- */
 exports.createLine = async (req, res) => {
   try {
-    const { nome, universidade_id, veiculo_id, motorista_id } = req.body;
-    
-    if (!nome) {
-      return res.status(400).json({ error: 'Nome da linha é obrigatório' });
-    }
-    
-    const line = await adminService.createLine({ 
-      nome, 
-      universidade_id, 
-      veiculo_id, 
-      motorista_id 
-    });
-    
-    return res.status(201).json({
-      success: true,
-      message: 'Linha criada com sucesso!',
-      linha: line
-    });
+    const lineData = req.body;
+    const result = await adminService.createLine(lineData);
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao criar linha:', error);
-    return res.status(500).json({ error: 'Erro ao criar linha' });
+    console.error('Erro no createLine:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-/**
- * Atualizar linha
- */
 exports.updateLine = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nome, universidade_id, veiculo_id, motorista_id, ativo } = req.body;
-    
-    const result = await adminService.updateLine(id, { 
-      nome, 
-      universidade_id, 
-      veiculo_id, 
-      motorista_id, 
-      ativo 
-    });
-    
-    return res.json({
-      success: true,
-      message: 'Linha atualizada com sucesso!',
-      linha: result
-    });
+    const lineData = req.body;
+    const result = await adminService.updateLine(parseInt(id), lineData);
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao atualizar linha:', error);
-    
-    if (error.message === 'LINHA_NAO_ENCONTRADA') {
-      return res.status(404).json({ error: 'Linha não encontrada' });
-    }
-    
-    if (error.message === 'NENHUM_CAMPO_PARA_ATUALIZAR') {
-      return res.status(400).json({ error: 'Nenhum campo para atualizar' });
-    }
-    
-    return res.status(500).json({ error: 'Erro ao atualizar linha' });
+    console.error('Erro no updateLine:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-/**
- * Atribuir motorista a linha
- */
 exports.assignDriver = async (req, res) => {
   try {
     const { id } = req.params;
-    const { motorista_id } = req.body;
-    
-    if (!motorista_id) {
-      return res.status(400).json({ error: 'ID do motorista é obrigatório' });
-    }
-    
-    const result = await adminService.assignDriver(id, motorista_id);
-    
-    return res.json({
-      success: true,
-      message: 'Motorista atribuído com sucesso!',
-      linha: result
-    });
+    const { motoristaId } = req.body;
+    const result = await adminService.assignDriver(parseInt(id), motoristaId);
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao atribuir motorista:', error);
-    
-    if (error.message === 'LINHA_NAO_ENCONTRADA') {
-      return res.status(404).json({ error: 'Linha não encontrada' });
-    }
-    
-    return res.status(500).json({ error: 'Erro ao atribuir motorista' });
+    console.error('Erro no assignDriver:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
 /**
- * Listar pontos
+ * Pontos
  */
 exports.getPoints = async (req, res) => {
   try {
     const { linhaId } = req.params;
-    const points = await adminService.getPoints(linhaId);
-    return res.json({ pontos: points });
+    const result = await adminService.getPoints(parseInt(linhaId));
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao listar pontos:', error);
-    return res.status(500).json({ error: 'Erro ao listar pontos' });
+    console.error('Erro no getPoints:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-/**
- * Criar ponto
- */
 exports.createPoint = async (req, res) => {
   try {
     const { linhaId } = req.params;
-    const { nome, latitude, longitude, ordem, raio_m } = req.body;
-    
-    if (!nome || !latitude || !longitude || !ordem) {
-      return res.status(400).json({ 
-        error: 'Nome, latitude, longitude e ordem são obrigatórios' 
-      });
-    }
-    
-    const point = await adminService.createPoint(linhaId, { 
-      nome, 
-      latitude, 
-      longitude, 
-      ordem, 
-      raio_m 
-    });
-    
-    return res.status(201).json({
-      success: true,
-      message: 'Ponto criado com sucesso!',
-      ponto: point
-    });
+    const pointData = req.body;
+    const result = await adminService.createPoint(parseInt(linhaId), pointData);
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao criar ponto:', error);
-    return res.status(500).json({ error: 'Erro ao criar ponto' });
+    console.error('Erro no createPoint:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-/**
- * Atualizar ponto
- */
 exports.updatePoint = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nome, latitude, longitude, ordem, raio_m, ativo } = req.body;
-    
-    const result = await adminService.updatePoint(id, { 
-      nome, 
-      latitude, 
-      longitude, 
-      ordem, 
-      raio_m, 
-      ativo 
-    });
-    
-    return res.json({
-      success: true,
-      message: 'Ponto atualizado com sucesso!',
-      ponto: result
-    });
+    const pointData = req.body;
+    const result = await adminService.updatePoint(parseInt(id), pointData);
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao atualizar ponto:', error);
-    
-    if (error.message === 'PONTO_NAO_ENCONTRADO') {
-      return res.status(404).json({ error: 'Ponto não encontrado' });
-    }
-    
-    return res.status(500).json({ error: 'Erro ao atualizar ponto' });
+    console.error('Erro no updatePoint:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
-/**
- * Deletar ponto
- */
 exports.deletePoint = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await adminService.deletePoint(id);
-    
-    return res.json({
-      success: true,
-      message: result.message
-    });
+    await adminService.deletePoint(parseInt(id));
+    res.json({ success: true, message: 'Ponto deletado com sucesso' });
   } catch (error) {
-    console.error('Erro ao deletar ponto:', error);
-    
-    if (error.message === 'PONTO_NAO_ENCONTRADO') {
-      return res.status(404).json({ error: 'Ponto não encontrado' });
-    }
-    
-    return res.status(500).json({ error: 'Erro ao deletar ponto' });
+    console.error('Erro no deletePoint:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
 /**
- * Relatório de faltas
+ * Relatórios
  */
 exports.getAbsenceReport = async (req, res) => {
   try {
-    const { dataInicio, dataFim, linhaId } = req.query;
-    
-    if (!dataInicio || !dataFim) {
-      return res.status(400).json({ 
-        error: 'Data de início e fim são obrigatórias' 
-      });
-    }
-    
-    const report = await adminService.getAbsenceReport({ 
-      dataInicio, 
-      dataFim, 
-      linhaId 
-    });
-    
-    return res.json({ 
-      faltas: report,
-      periodo: { dataInicio, dataFim }
-    });
+    const { dataInicio, dataFim } = req.query;
+    const result = await adminService.getAbsenceReport(dataInicio, dataFim);
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao gerar relatório:', error);
-    return res.status(500).json({ error: 'Erro ao gerar relatório de faltas' });
+    console.error('Erro no getAbsenceReport:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getAttendanceReport = async (req, res) => {
+  try {
+    const { dataInicio, dataFim } = req.query;
+    const result = await adminService.getAttendanceReport(dataInicio, dataFim);
+    res.json(result);
+  } catch (error) {
+    console.error('Erro no getAttendanceReport:', error);
+    res.status(500).json({ error: error.message });
   }
 };
 
 /**
- * Relatório de taxa de presença
+ * Buscar passageiros de uma linha
  */
-exports.getAttendanceReport = async (req, res) => {
+exports.getLinePassengers = async (req, res) => {
   try {
-    const { dataInicio, dataFim, linhaId } = req.query;
-    
-    if (!dataInicio || !dataFim) {
-      return res.status(400).json({ 
-        error: 'Data de início e fim são obrigatórias' 
-      });
-    }
-    
-    const report = await adminService.getAttendanceReport({ 
-      dataInicio, 
-      dataFim, 
-      linhaId 
-    });
-    
-    return res.json({ 
-      relatorio: report,
-      periodo: { dataInicio, dataFim }
-    });
+    const { linhaId } = req.params;
+    const result = await adminService.getLinePassengers(parseInt(linhaId));
+    res.json(result);
   } catch (error) {
-    console.error('Erro ao gerar relatório:', error);
-    return res.status(500).json({ error: 'Erro ao gerar relatório de presença' });
+    console.error('Erro no getLinePassengers:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Atualizar configurações da linha
+ */
+exports.updateLineConfig = async (req, res) => {
+  try {
+    const { linhaId } = req.params;
+    const configData = req.body;
+    const result = await adminService.updateLineConfig(parseInt(linhaId), configData);
+    res.json(result);
+  } catch (error) {
+    console.error('Erro no updateLineConfig:', error);
+    res.status(500).json({ error: error.message });
   }
 };
