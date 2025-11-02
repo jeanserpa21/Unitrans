@@ -9,9 +9,10 @@ import PassengerDashboardPage from './pages/passenger/DashboardPage';
 import QRCodePage from './pages/passenger/QRCodePage';
 import ProfilePage from './pages/passenger/ProfilePage';
 import SolicitarCaronaPage from './pages/passenger/SolicitarCaronaPage';
+import NotificationsPage from './pages/passenger/NotificationsPage';
 
 // Páginas do Motorista
-import DriverDashboard from './pages/driver/Dashboard';
+import DashboardMotorista from './pages/driver/DashboardMotorista';
 import PassengersPage from './pages/driver/Passengers';
 import RoutePointsPage from './pages/driver/RoutePoints';
 import HistoryPage from './pages/driver/History';
@@ -27,7 +28,9 @@ import SecretaryPage from './pages/admin/Secretary';
 import DriversPage from './pages/admin/Drivers';
 import VehiclesPage from './pages/admin/Vehicles';
 import ReportsPage from './pages/admin/Reports';
-import NoticesPage from './pages/admin/Notices'; // <-- NOVO
+import NoticesPage from './pages/admin/Notices';
+import QRCodeGenerator from './pages/admin/QRCodeGenerator';
+import ViagensPage from './pages/admin/ViagensPage';
 
 // Componentes do Admin
 import AdminSidebar from './components/admin/Sidebar';
@@ -44,7 +47,8 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   }
 
   if (!user) return <Navigate to="/login" replace />;
-  if (allowedRoles && !allowedRoles.includes(user.papel)) return <Navigate to="/" replace />;
+  if (allowedRoles && !allowedRoles.includes(user.papel))
+    return <Navigate to="/" replace />;
 
   return children;
 };
@@ -83,6 +87,15 @@ function App() {
               </ProtectedRoute>
             }
           />
+          {/* ✅ NOVA ROTA DE NOTIFICAÇÕES */}
+          <Route
+            path="/passageiro/notificacoes"
+            element={
+              <ProtectedRoute allowedRoles={['PASSAGEIRO']}>
+                <NotificationsPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/passageiro/perfil"
             element={
@@ -93,6 +106,15 @@ function App() {
           />
 
           {/* ==================== ROTAS DO MOTORISTA ==================== */}
+<Route
+  path="/motorista/dashboard-novo"
+  element={
+    <ProtectedRoute allowedRoles={['MOTORISTA']}>
+      <DashboardMotorista />
+    </ProtectedRoute>
+  }
+/>
+
           <Route
             path="/motorista"
             element={
@@ -109,14 +131,14 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/motorista/dashboard"
-            element={
-              <ProtectedRoute allowedRoles={['MOTORISTA']}>
-                <DriverDashboard />
-              </ProtectedRoute>
-            }
-          />
+<Route
+  path="/motorista/dashboard"
+  element={
+    <ProtectedRoute allowedRoles={['MOTORISTA']}>
+      <DashboardMotorista />
+    </ProtectedRoute>
+  }
+/>
           <Route
             path="/motorista/passageiros"
             element={
@@ -167,19 +189,20 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+  path="/admin/viagens"
+  element={
+    <ProtectedRoute allowedRoles={['ADM']}>
+      <ViagensPage />
+    </ProtectedRoute>
+  }
+/>
           <Route
             path="/admin/linhas"
             element={
               <ProtectedRoute allowedRoles={['ADM']}>
                 <LinesPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/secretaria"
-            element={
-              <ProtectedRoute allowedRoles={['ADM']}>
-                <SecretaryPage />
               </ProtectedRoute>
             }
           />
@@ -200,6 +223,14 @@ function App() {
             }
           />
           <Route
+            path="/admin/qrcode"
+            element={
+              <ProtectedRoute allowedRoles={['ADM']}>
+                <QRCodeGenerator />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/admin/relatorios"
             element={
               <ProtectedRoute allowedRoles={['ADM']}>
@@ -207,7 +238,14 @@ function App() {
               </ProtectedRoute>
             }
           />
-          {/* Avisos (fora de qualquer layout com sidebar) */}
+          <Route
+            path="/admin/secretaria"
+            element={
+              <ProtectedRoute allowedRoles={['ADM']}>
+                <SecretaryPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/admin/avisos"
             element={

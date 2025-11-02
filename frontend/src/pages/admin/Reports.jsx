@@ -1,153 +1,238 @@
-import { useAuth } from '../../contexts/AuthContext';
-import AdminSidebar from '../../components/admin/Sidebar';
+import { useState, useEffect } from 'react';
+import {
+  PieChart, Pie, Cell,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
+import * as adminService from '../../services/adminService';
 
 export default function ReportsPage() {
-  const { user } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    passageirosAtivos: 0,
+    totalFaltas: 0,
+    taxaOcupacaoMedia: 0,
+  });
+  const [presencaPorLinha, setPresencaPorLinha] = useState([]);
+  const [faltasPorLinha, setFaltasPorLinha] = useState([]);
 
-  // Dados fictícios para os gráficos
-  const qrValidados = [
-    { hospital: 'Hospital A', total: 250 },
-    { hospital: 'Hospital B', total: 180 },
-    { hospital: 'Hospital C', total: 150 },
-  ];
+  useEffect(() => {
+    loadDashboard();
+  }, []);
 
-  const qrNaoValidados = [
-    { hospital: 'Hospital A', total: 200 },
-    { hospital: 'Hospital B', total: 160 },
-    { hospital: 'Hospital C', total: 120 },
-  ];
+  const loadDashboard = async () => {
+    try {
+      setLoading(true);
 
-  const maxValue = 250;
+      // Período: últimos 30 dias (sem mutar a data original)
+      const hoje = new Date();
+      const dataFim = hoje.toISOString().split('T')[0];
+      const trintaDiasAtras = new Date(hoje.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const dataInicio = trintaDiasAtras.toISOString().split('T')[0];
+
+      // Buscar dados paralelamente
+      const [passageiros, presenca, faltas] = await Promise.all([
+        adminService.getActivePassengersReport(),
+        adminService.getAttendanceReport(dataInicio, dataFim),
+        adminService.getAbsenceReport(dataInicio, dataFim),
+      ]);
+
+      // Estatísticas gerais
+      const taxaOcupacaoMedia =
+        presenca?.length > 0
+          ? (
+              presenca.reduce((acc, l) => acc + Number(l.taxa_presenca || 0), 0) /
+              presenca.length
+            ).toFixed(1)
+          : 0;
+
+      setStats({
+        passageirosAtivos: Array.isArray(passageiros) ? passageiros.length : Number(passageiros?.total || 0),
+        totalFaltas: Array.isArray(faltas) ? faltas.length : Number(faltas?.total || 0),
+        taxaOcupacaoMedia: Number(taxaOcupacaoMedia),
+      });
+
+      // Dados para gráficos
+      setPresencaPorLinha(
+        (presenca || []).map((l) => ({
+          linha: l.linha,
+          presente: Number(l.total_presente || 0),
+          faltas: Number(l.total_faltas || 0),
+          taxa: Number(l.taxa_presenca || 0),
+        }))
+      );
+
+      // Agrupar faltas por linha
+      const faltasMap = {};
+      (faltas || []).forEach((f) => {
+        const key = f.linha || 'Sem Linha';
+        faltasMap[key] = (faltasMap[key] || 0) + 1;
+      });
+      setFaltasPorLinha(
+        Object.entries(faltasMap).map(([linha, total]) => ({ linha, faltas: total }))
+      );
+    } catch (error) {
+      console.error('Erro ao carregar dashboard:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#0ea5e9'];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-green-700 mx-auto mb-4"></div>
+          <p className="text-green-700 font-medium">Carregando relatórios...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-green-50">
-      <AdminSidebar />
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 p-8">
+      <div className="max-w-7xl mx-auto">
 
-      <div className="ml-48 min-h-screen">
-        {/* Header Badge */}
-        <div className="fixed top-4 right-4 z-30">
-          <div className="bg-green-700 text-white rounded-full px-6 py-3 shadow-lg flex items-center space-x-3">
-            <div>
-              <p className="text-sm font-semibold">User</p>
-              <p className="text-xs text-green-200">Cod: {user?.id || '?'}</p>
+        {/* Cabeçalho com Botão Voltar */}
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold text-green-800">📊 Relatórios e Estatísticas</h1>
+
+          <button
+            onClick={() => (window.location.href = '/admin')}
+            className="flex items-center space-x-2 px-6 py-3 bg-green-700 hover:bg-green-800 text-white font-bold rounded-full transition shadow-lg"
+          >
+            <span className="text-xl">↩</span>
+            <span>Voltar</span>
+          </button>
+        </div>
+
+        {/* Cards de Estatísticas */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Total de Passageiros */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
+            <div className="w-32 h-32 bg-green-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-5xl font-bold text-white">{stats.passageirosAtivos}</span>
             </div>
-            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-green-700 font-bold">
-              {user?.nome?.charAt(0) || 'A'}
+            <h3 className="text-xl font-semibold text-gray-800">Total de Passageiros</h3>
+            <p className="text-gray-600 text-sm">Ativos no sistema</p>
+          </div>
+
+          {/* Total de Faltas */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
+            <div className="w-32 h-32 bg-green-700 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-5xl font-bold text-white">{stats.totalFaltas}</span>
             </div>
+            <h3 className="text-xl font-semibold text-gray-800">Total de Faltas</h3>
+            <p className="text-gray-600 text-sm">Últimos 30 dias</p>
+          </div>
+
+          {/* Taxa de Ocupação Média */}
+          <div className="bg-white rounded-2xl shadow-lg p-6 text-center">
+            <div className="relative w-32 h-32 mx-auto mb-4">
+              <svg className="transform -rotate-90 w-32 h-32">
+                <circle cx="64" cy="64" r="56" stroke="#e5e7eb" strokeWidth="12" fill="none" />
+                <circle
+                  cx="64"
+                  cy="64"
+                  r="56"
+                  stroke="#10b981"
+                  strokeWidth="12"
+                  fill="none"
+                  strokeDasharray={`${2 * Math.PI * 56 * (stats.taxaOcupacaoMedia / 100)} ${2 * Math.PI * 56}`}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-3xl font-bold text-green-700">{stats.taxaOcupacaoMedia}%</span>
+              </div>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-800">Taxa de Ocupação Média</h3>
+            <p className="text-gray-600 text-sm">do Ônibus</p>
           </div>
         </div>
 
-        {/* Conteúdo */}
-        <div className="p-12 pt-20 space-y-8">
-          {/* Grid de Gráficos */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {/* Gráfico Pizza - Ocupação Média */}
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-6">
-                Taxa de Ocupação Média do Ônibus
-              </h3>
-              <div className="flex justify-center">
-                <div className="relative w-64 h-64">
-                  {/* Pizza Chart Simplificado */}
-                  <svg viewBox="0 0 100 100" className="transform -rotate-90">
-                    {/* Base */}
-                    <circle cx="50" cy="50" r="40" fill="#60D394" />
-                    {/* Arco 1 */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      strokeDasharray="75 25"
-                      strokeDashoffset="0"
-                      stroke="#FFD97D"
-                      strokeWidth="80"
-                      strokeLinecap="butt"
-                      fill="none"
-                    />
-                    {/* Arco 2 */}
-                    <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      strokeDasharray="50 50"
-                      strokeDashoffset="-25"
-                      stroke="#5DADE2"
-                      strokeWidth="80"
-                      strokeLinecap="butt"
-                      fill="none"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
+        {/* Gráficos */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-            {/* QR Codes Validados */}
-            <div className="bg-white rounded-2xl shadow-lg p-8">
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-6">
-                Quantidade de QR Codes validados
-              </h3>
-              <div className="space-y-4">
-                {qrValidados.map((item, idx) => (
-                  <div key={idx}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">{item.hospital}</span>
-                      <span className="font-semibold">{item.total}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-8">
-                      <div
-                        className="bg-blue-500 h-8 rounded-full transition-all"
-                        style={{ width: `${(item.total / maxValue) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+          {/* Gráfico de Taxa de Presença por Linha */}
+          {presencaPorLinha.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Taxa de Presença por Linha</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={presencaPorLinha}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="linha" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="taxa" fill="#10b981" name="Taxa (%)" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
+          )}
 
-            {/* Total de Alunos que Não Voltam */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center justify-center">
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-6">
-                Total de alunos que não voltam
-              </h3>
-              <div className="w-48 h-48 rounded-full bg-gradient-to-br from-green-700 to-green-600 flex items-center justify-center shadow-2xl">
-                <span className="text-7xl font-bold text-white">20</span>
-              </div>
+          {/* Gráfico de Faltas por Linha */}
+          {faltasPorLinha.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg p-6">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Faltas por Linha (Últimos 30 dias)</h3>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={faltasPorLinha}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="linha" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="faltas" fill="#ef4444" name="Faltas" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
+          )}
 
-            {/* Total de Passageiros */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center justify-center">
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-6">
-                Total de Passageiros
-              </h3>
-              <div className="w-48 h-48 rounded-full bg-gradient-to-br from-green-700 to-green-600 flex items-center justify-center shadow-2xl">
-                <span className="text-7xl font-bold text-white">280</span>
-              </div>
+          {/* Presentes vs Faltas por Linha */}
+          {presencaPorLinha.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg p-6 lg:col-span-2">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Presentes vs Faltas por Linha</h3>
+              <ResponsiveContainer width="100%" height={320}>
+                <BarChart data={presencaPorLinha}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="linha" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="presente" fill="#10b981" name="Presente" />
+                  <Bar dataKey="faltas" fill="#ef4444" name="Faltas" />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
+          )}
 
-            {/* QR Codes NÃO Validados */}
-            <div className="bg-white rounded-2xl shadow-lg p-8 md:col-span-2">
-              <h3 className="text-xl font-bold text-gray-800 text-center mb-6">
-                Quantidade de QR Codes Não validados
-              </h3>
-              <div className="space-y-4 max-w-2xl mx-auto">
-                {qrNaoValidados.map((item, idx) => (
-                  <div key={idx}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="text-gray-600">{item.hospital}</span>
-                      <span className="font-semibold">{item.total}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-8">
-                      <div
-                        className="bg-blue-500 h-8 rounded-full transition-all"
-                        style={{ width: `${(item.total / maxValue) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+          {/* Gráfico de Pizza - Distribuição de Passageiros por Linha */}
+          {presencaPorLinha.length > 0 && (
+            <div className="bg-white rounded-2xl shadow-lg p-6 lg:col-span-2">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Distribuição de Passageiros por Linha</h3>
+              <ResponsiveContainer width="100%" height={320}>
+                <PieChart>
+                  <Pie
+                    data={presencaPorLinha}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={(entry) => `${entry.linha}`}
+                    outerRadius={110}
+                    dataKey="presente"
+                  >
+                    {presencaPorLinha.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
             </div>
+          )}
 
-          </div>
         </div>
       </div>
     </div>

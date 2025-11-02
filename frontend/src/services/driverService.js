@@ -20,7 +20,7 @@ api.interceptors.request.use((config) => {
  * 🚌 Buscar viagem do dia
  */
 export const getTodayTrip = async () => {
-  const response = await api.get('/motoristas/viagem-hoje');
+  const response = await api.get('/driver/viagem-hoje');
   return response.data;
 };
 
@@ -28,7 +28,7 @@ export const getTodayTrip = async () => {
  * 🚀 Iniciar viagem
  */
 export const startTrip = async () => {
-  const response = await api.post('/motoristas/iniciar-viagem');
+  const response = await api.post('/driver/iniciar-viagem');
   return response.data;
 };
 
@@ -36,7 +36,7 @@ export const startTrip = async () => {
  * 🏁 Finalizar viagem
  */
 export const endTrip = async () => {
-  const response = await api.post('/motoristas/finalizar-viagem');
+  const response = await api.post('/driver/finalizar-viagem');
   return response.data;
 };
 
@@ -44,7 +44,7 @@ export const endTrip = async () => {
  * 👥 Listar passageiros da viagem
  */
 export const getPassengers = async () => {
-  const response = await api.get('/motoristas/passageiros');
+  const response = await api.get('/driver/passageiros');
   return response.data;
 };
 
@@ -52,7 +52,7 @@ export const getPassengers = async () => {
  * 📍 Listar pontos da rota
  */
 export const getRoutePoints = async () => {
-  const response = await api.get('/motoristas/pontos');
+  const response = await api.get('/driver/pontos');
   return response.data;
 };
 
@@ -60,7 +60,7 @@ export const getRoutePoints = async () => {
  * ✅ Validar QR Code
  */
 export const validateQRCode = async (qrcode) => {
-  const response = await api.post('/motoristas/validar-qrcode', { qrcode });
+  const response = await api.post('/driver/validar-qrcode', { qrcode });
   return response.data;
 };
 
@@ -68,7 +68,7 @@ export const validateQRCode = async (qrcode) => {
  * 📢 Anunciar próximo ponto
  */
 export const announceNextPoint = async (pontoId) => {
-  const response = await api.post('/motoristas/anunciar-ponto', { pontoId });
+  const response = await api.post('/driver/anunciar-ponto', { pontoId });
   return response.data;
 };
 
@@ -76,7 +76,7 @@ export const announceNextPoint = async (pontoId) => {
  * 📜 Buscar histórico
  */
 export const getHistory = async (params = {}) => {
-  const response = await api.get('/motoristas/historico', { params });
+  const response = await api.get('/driver/historico', { params });
   return response.data;
 };
 
@@ -84,7 +84,7 @@ export const getHistory = async (params = {}) => {
  * 💬 Enviar mensagem
  */
 export const sendMessage = async (titulo, corpo) => {
-  const response = await api.post('/motoristas/mensagens', { titulo, corpo });
+  const response = await api.post('/driver/mensagens', { titulo, corpo });
   return response.data;
 };
 

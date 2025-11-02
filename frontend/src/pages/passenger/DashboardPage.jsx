@@ -120,15 +120,15 @@ const PassengerDashboardPage = () => {
                 <p className="text-green-200 text-sm">{user?.email}</p>
               </div>
 
-              <nav className="space-y-2">
-                <MenuItem icon={Home} label="Início" onClick={() => setMenuOpen(false)} />
-                <MenuItem icon={Bell} label="Notificações" onClick={() => alert('Em desenvolvimento')} />
-                <MenuItem icon={User} label="Perfil" onClick={() => navigate('/passageiro/perfil')} />
-                <MenuItem icon={Calendar} label="Minhas Viagens" onClick={() => alert('Em desenvolvimento')} />
-                <MenuItem icon={HelpCircle} label="Ajuda" onClick={() => alert('Em desenvolvimento')} />
-                <MenuItem icon={Accessibility} label="Acessibilidade" onClick={() => alert('Em desenvolvimento')} />
-                <MenuItem icon={LogOut} label="Sair" onClick={logout} />
-              </nav>
+<nav className="space-y-2">
+  <MenuItem icon={Home} label="Início" onClick={() => setMenuOpen(false)} />
+  <MenuItem icon={Bell} label="Notificações" onClick={() => navigate('/passageiro/notificacoes')} />
+  <MenuItem icon={User} label="Perfil" onClick={() => navigate('/passageiro/perfil')} />
+  <MenuItem icon={Calendar} label="Minhas Viagens" onClick={() => alert('Em desenvolvimento')} />
+  <MenuItem icon={HelpCircle} label="Ajuda" onClick={() => alert('Em desenvolvimento')} />
+  <MenuItem icon={Accessibility} label="Acessibilidade" onClick={() => alert('Em desenvolvimento')} />
+  <MenuItem icon={LogOut} label="Sair" onClick={logout} />
+</nav>
             </div>
           </div>
         </>

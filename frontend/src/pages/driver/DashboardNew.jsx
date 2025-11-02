@@ -12,23 +12,21 @@ export default function DashboardNew() {
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Carregar dados
+  // Carregar dados da viagem e passageiros
   const loadData = async () => {
     try {
       setLoading(true);
       const data = await driverService.getTodayTrip();
       setViagem(data);
 
-      // Carregar passageiros se houver viagem
       if (data && data.viagem_id) {
         const passData = await driverService.getPassengers();
-        // Flatten passageiros de todos os pontos
         const allPassengers = (passData.pontos || []).flatMap(ponto =>
           (ponto.passageiros || []).map(p => ({
             ...p,
             ordem: ponto.ordem,
             ponto: ponto.nome,
-            universidade: p.universidade_nome || 'N/A'
+            universidade: p.universidade_nome || 'N/A',
           }))
         );
         setPassageiros(allPassengers);
@@ -48,29 +46,34 @@ export default function DashboardNew() {
 
   // 🔹 Iniciar Ida (COM NOTIFICAÇÃO AUTOMÁTICA)
   const handleStartIda = async () => {
-    if (!confirm('Iniciar viagem de IDA?')) return;
+    if (!window.confirm('Deseja iniciar a viagem de IDA?')) return;
 
     try {
       setActionLoading(true);
 
-      // 1. Iniciar a viagem
+      // 1️⃣ PRIMEIRO: Iniciar a viagem
+      console.log('1. Iniciando viagem...');
       await driverService.startTrip();
 
-      // 2. Enviar notificação automática
-      try {
-        await driverService.sendMessage(
-          '🚌 Veículo em rota - IDA',
-          'O ônibus iniciou a viagem de IDA! Esteja pronto no seu ponto de embarque.'
-        );
-      } catch (err) {
-        console.error('Erro ao enviar notificação:', err);
-        // Continua mesmo se falhar a notificação
-      }
+      // 2️⃣ DEPOIS: Enviar notificação automática
+      console.log('2. Enviando notificação...');
+      await driverService.sendMessage(
+        '🚌 Viagem Iniciada - IDA',
+        'O ônibus saiu! A viagem de ida foi iniciada. Por favor, esteja no ponto de embarque.'
+      );
 
-      alert('✅ Viagem de IDA iniciada! Passageiros notificados.');
-      navigate('/motorista/viagem-andamento', { state: { tipo: 'IDA' } });
-    } catch (err) {
-      alert(err.response?.data?.error || 'Erro ao iniciar viagem');
+      // 3️⃣ Redirecionar
+      console.log('3. Redirecionando...');
+      alert('✅ Viagem iniciada e passageiros notificados!');
+      navigate('/motorista/viagem-andamento');
+    } catch (error) {
+      console.error('Erro ao iniciar viagem:', error);
+
+      if (error.response?.data?.error) {
+        alert('❌ ' + error.response.data.error);
+      } else {
+        alert('❌ Erro ao iniciar viagem: ' + error.message);
+      }
     } finally {
       setActionLoading(false);
     }
@@ -78,29 +81,34 @@ export default function DashboardNew() {
 
   // 🔹 Iniciar Volta (COM NOTIFICAÇÃO AUTOMÁTICA)
   const handleStartVolta = async () => {
-    if (!confirm('Iniciar viagem de VOLTA?')) return;
+    if (!window.confirm('Deseja iniciar a viagem de VOLTA?')) return;
 
     try {
       setActionLoading(true);
 
-      // 1. Iniciar a viagem
+      // 1️⃣ PRIMEIRO: Iniciar a viagem
+      console.log('1. Iniciando viagem de volta...');
       await driverService.startTrip();
 
-      // 2. Enviar notificação automática
-      try {
-        await driverService.sendMessage(
-          '🚌 Veículo em rota - VOLTA',
-          'O ônibus iniciou a viagem de VOLTA! Aguarde no ponto de embarque da universidade.'
-        );
-      } catch (err) {
-        console.error('Erro ao enviar notificação:', err);
-        // Continua mesmo se falhar a notificação
-      }
+      // 2️⃣ DEPOIS: Enviar notificação automática
+      console.log('2. Enviando notificação...');
+      await driverService.sendMessage(
+        '🔙 Viagem Iniciada - VOLTA',
+        'O ônibus está retornando! A viagem de volta foi iniciada. Por favor, esteja no ponto de embarque.'
+      );
 
-      alert('✅ Viagem de VOLTA iniciada! Passageiros notificados.');
-      navigate('/motorista/viagem-andamento', { state: { tipo: 'VOLTA' } });
-    } catch (err) {
-      alert(err.response?.data?.error || 'Erro ao iniciar viagem');
+      // 3️⃣ Redirecionar
+      console.log('3. Redirecionando...');
+      alert('✅ Viagem de volta iniciada e passageiros notificados!');
+      navigate('/motorista/viagem-andamento');
+    } catch (error) {
+      console.error('Erro ao iniciar viagem de volta:', error);
+
+      if (error.response?.data?.error) {
+        alert('❌ ' + error.response.data.error);
+      } else {
+        alert('❌ Erro ao iniciar viagem: ' + error.message);
+      }
     } finally {
       setActionLoading(false);
     }
@@ -119,7 +127,7 @@ export default function DashboardNew() {
       {/* Sidebar */}
       <Sidebar />
 
-      {/* Header com Badge do Usuário */}
+      {/* Header com informações do motorista */}
       <div className="fixed top-4 right-4 z-30">
         <div className="bg-green-700 text-white rounded-full px-6 py-3 shadow-lg flex items-center space-x-3">
           <div>
@@ -152,7 +160,7 @@ export default function DashboardNew() {
               <p className="text-6xl font-bold">{passageiros.length}</p>
             </div>
 
-            {/* Tabela de Passageiros */}
+            {/* Lista de Passageiros */}
             {passageiros.length > 0 && (
               <div className="px-8 pb-8">
                 <div className="bg-green-600 rounded-xl overflow-hidden">

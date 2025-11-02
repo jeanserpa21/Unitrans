@@ -282,12 +282,12 @@ DriverService.prototype.sendMessage = async function (motoristaId, { titulo, cor
   console.log('✅ Viagem encontrada:', viagemId);
 
   // Buscar passageiros da viagem (usando viagens_passageiros, conforme solicitado)
-  const passageirosQuery = `
-    SELECT DISTINCT p.usuario_id
-    FROM viagens_passageiros vp
-    INNER JOIN passageiros p ON vp.passageiro_id = p.id
-    WHERE vp.viagem_id = $1
-  `;
+const passageirosQuery = `
+  SELECT DISTINCT p.usuario_id
+  FROM passageiros_viagem pv
+  INNER JOIN passageiros p ON pv.passageiro_id = p.id
+  WHERE pv.viagem_id = $1
+`;
   const passageirosResult = await db.query(passageirosQuery, [viagemId]);
   console.log('👥 Total de passageiros:', passageirosResult.rows.length);
 

@@ -23,12 +23,14 @@ const authRoutes = require('./routes/auth.routes');
 const passengerRoutes = require('./routes/passenger.routes');
 const driverRoutes = require('./routes/driver.routes');
 const adminRoutes = require('./routes/admin.routes');
+const viagemRoutes = require('./routes/viagem.routes'); // 👈 novo
 
 // 🚏 Usar rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/passageiros', passengerRoutes);
-app.use('/api/motoristas', driverRoutes);
+app.use('/api/driver', driverRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/viagens', viagemRoutes); // 👈 novo
 
 // 🏠 Rota principal
 app.get('/', (req, res) => {
@@ -78,6 +80,11 @@ app.get('/test/viagens', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+  const notificacaoRoutes = require('./routes/notificacao.routes');
+
+// ... outras rotas ...
+
+app.use('/api/notificacoes', notificacaoRoutes);
 
 // 🔧 ENDPOINT TEMPORÁRIO - Gerar hash correto
 app.post('/dev/gerar-hash', async (req, res) => {

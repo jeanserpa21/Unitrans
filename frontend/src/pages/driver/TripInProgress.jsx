@@ -15,6 +15,27 @@ export default function TripInProgress() {
 
   const tipo = location.state?.tipo || 'IDA';
 
+  // 🔊 Função para falar o nome do ponto
+  const falarPonto = (nomePonto) => {
+    if ('speechSynthesis' in window) {
+      // Cancelar qualquer fala anterior
+      window.speechSynthesis.cancel();
+
+      // Criar novo objeto de fala
+      const utterance = new SpeechSynthesisUtterance();
+      utterance.text = `Próxima parada: ${nomePonto}`;
+      utterance.lang = 'pt-BR'; // Português do Brasil
+      utterance.rate = 0.9; // Velocidade
+      utterance.pitch = 1; // Tom
+      utterance.volume = 1; // Volume máximo
+
+      // Falar
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert('⚠️ Seu navegador não suporta síntese de voz');
+    }
+  };
+
   // Carregar pontos
   const loadPoints = async () => {
     try {
@@ -37,14 +58,24 @@ export default function TripInProgress() {
     loadPoints();
   }, []);
 
-  // Anunciar ponto
+  // Anunciar ponto (backend + TTS)
   const handleAnnounce = async () => {
     if (!proximoPonto) return;
 
     try {
       setAnnouncing(true);
+      
+      // 1️⃣ Falar o nome do ponto
+      falarPonto(proximoPonto.nome);
+      
+      // 2️⃣ Enviar notificação aos passageiros (backend)
       await driverService.announceNextPoint(proximoPonto.id);
-      alert(`📢 Ponto "${proximoPonto.nome}" anunciado!`);
+      
+      // 3️⃣ Feedback visual
+      setTimeout(() => {
+        alert(`📢 Ponto "${proximoPonto.nome}" anunciado!`);
+      }, 500);
+      
       loadPoints(); // Recarregar
     } catch (err) {
       alert('Erro ao anunciar ponto');
@@ -101,9 +132,9 @@ export default function TripInProgress() {
             <button
               onClick={handleAnnounce}
               disabled={announcing || !proximoPonto}
-              className="mb-8 mx-auto w-24 h-24 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition disabled:opacity-50"
+              className="mb-8 mx-auto w-24 h-24 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition disabled:opacity-50 hover:scale-110 active:scale-95"
             >
-              <span className="text-5xl">🔊</span>
+              <span className="text-5xl">{announcing ? '⏳' : '🔊'}</span>
             </button>
 
             <h2 className="text-2xl font-semibold mb-4">Próxima Parada</h2>
@@ -123,6 +154,11 @@ export default function TripInProgress() {
                 </div>
               </div>
             )}
+
+            {/* Dica */}
+            <p className="mt-6 text-sm text-green-200">
+              🔊 Clique no botão para anunciar o ponto em voz alta
+            </p>
           </div>
 
           {/* Botão Finalizar */}
@@ -158,9 +194,21 @@ export default function TripInProgress() {
                       </p>
                     </div>
                   </div>
-                  <div className="text-right text-sm">
-                    <p className="text-gray-600">✅ {ponto.embarcados || 0}</p>
-                    <p className="text-gray-600">⏳ {ponto.aguardando || 0}</p>
+                  
+                  <div className="flex items-center gap-4">
+                    <div className="text-right text-sm">
+                      <p className="text-gray-600">✅ {ponto.embarcados || 0}</p>
+                      <p className="text-gray-600">⏳ {ponto.aguardando || 0}</p>
+                    </div>
+                    
+                    {/* Botão para falar ponto individual */}
+                    <button
+                      onClick={() => falarPonto(ponto.nome)}
+                      className="p-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition"
+                      title={`Anunciar ${ponto.nome}`}
+                    >
+                      🔊
+                    </button>
                   </div>
                 </div>
               ))}

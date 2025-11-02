@@ -18,18 +18,17 @@ export default function DriversPage() {
     loadDrivers();
   }, []);
 
-const loadDrivers = async () => {
-  try {
-    setLoading(true);
-    const data = await adminService.getDrivers();
-    // Backend retorna array direto, não objeto com propriedade motoristas
-    setMotoristas(Array.isArray(data) ? data : (data.motoristas || []));
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
+  const loadDrivers = async () => {
+    try {
+      setLoading(true);
+      const data = await adminService.getDrivers();
+      setMotoristas(Array.isArray(data) ? data : (data.motoristas || []));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // === Handlers do modal ===
   const handleAdd = () => {
@@ -55,7 +54,21 @@ const loadDrivers = async () => {
       loadDrivers();
     } catch (err) {
       console.error(err);
-      alert('Erro ao salvar motorista');
+      alert('❌ Erro ao salvar motorista');
+    }
+  };
+
+  // === DELETE / DESATIVAR ===
+  const handleDelete = async (id, nome) => {
+    if (!window.confirm(`❓ Deseja realmente desativar o motorista ${nome}?`)) return;
+
+    try {
+      await adminService.deleteDriver(id);
+      alert('✅ Motorista desativado com sucesso!');
+      loadDrivers();
+    } catch (error) {
+      console.error('Erro ao deletar motorista:', error);
+      alert('❌ Erro ao desativar motorista');
     }
   };
 
@@ -111,7 +124,7 @@ const loadDrivers = async () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="bg-transparent text-white placeholder-green-200 outline-none uppercase tracking-wider"
               />
-              <button className="text-white text-xl">🔍</button>
+              <button className="text-white text-xl" title="Pesquisar">🔍</button>
             </div>
           </div>
 
@@ -122,7 +135,7 @@ const loadDrivers = async () => {
                 <tr className="border-b border-white/20">
                   <th className="px-6 py-4 text-left font-bold uppercase tracking-wider">Nome</th>
                   <th className="px-6 py-4 text-left font-bold uppercase tracking-wider">E-mail</th>
-                  <th className="px-6 py-4 text-left font-bold uppercase tracking-wider">Cnh</th>
+                  <th className="px-6 py-4 text-left font-bold uppercase tracking-wider">CNH</th>
                   <th className="px-6 py-4 text-left font-bold uppercase tracking-wider">CPF</th>
                   <th className="px-6 py-4 text-left font-bold uppercase tracking-wider">ID Funcionário</th>
                   <th className="px-6 py-4 text-center font-bold uppercase tracking-wider">Ações</th>
@@ -144,16 +157,22 @@ const loadDrivers = async () => {
                       <td className="px-6 py-4">{motorista.cpf || 'N/A'}</td>
                       <td className="px-6 py-4">{motorista.id}</td>
                       <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() => handleEdit(motorista)}
-                          className="text-white hover:text-green-200 transition mr-3"
-                          title="Editar"
-                        >
-                          ✏️
-                        </button>
-                        <button className="text-red-300 hover:text-red-100 transition" title="Excluir">
-                          🗑️
-                        </button>
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleEdit(motorista)}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+                            title="Editar"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={() => handleDelete(motorista.id, motorista.nome)}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+                            title="Desativar"
+                          >
+                            🗑️
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

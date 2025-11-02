@@ -86,6 +86,20 @@ exports.updateDriver = async (req, res) => {
 };
 
 /**
+ * Deletar motorista
+ */
+exports.deleteDriver = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await adminService.deleteDriver(parseInt(id));
+    res.json(result);
+  } catch (error) {
+    console.error('Erro no deleteDriver:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
  * Linhas
  */
 exports.getLines = async (req, res) => {
@@ -232,6 +246,88 @@ exports.updateLineConfig = async (req, res) => {
     res.json(result);
   } catch (error) {
     console.error('Erro no updateLineConfig:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+/**
+ * Veículos
+ */
+exports.createVehicle = async (req, res) => {
+  try {
+    const vehicleData = req.body;
+    const result = await adminService.createVehicle(vehicleData);
+    res.json(result);
+  } catch (error) {
+    console.error('Erro no createVehicle:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.updateVehicle = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const vehicleData = req.body;
+    const result = await adminService.updateVehicle(parseInt(id), vehicleData);
+    res.json(result);
+  } catch (error) {
+    console.error('Erro no updateVehicle:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.deleteVehicle = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const result = await adminService.deleteVehicle(parseInt(id));
+    res.json(result);
+  } catch (error) {
+    console.error('Erro no deleteVehicle:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+/**
+ * Relatórios
+ */
+exports.getActivePassengersReport = async (req, res) => {
+  try {
+    const result = await adminService.getActivePassengersReport();
+    res.json(result);
+  } catch (error) {
+    console.error('Erro no getActivePassengersReport:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getAbsenceReport = async (req, res) => {
+  try {
+    const { dataInicio, dataFim } = req.query;
+    const result = await adminService.getAbsenceReport(dataInicio, dataFim);
+    res.json(result);
+  } catch (error) {
+    console.error('Erro no getAbsenceReport:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getAttendanceReport = async (req, res) => {
+  try {
+    const { dataInicio, dataFim } = req.query;
+    const result = await adminService.getAttendanceReport(dataInicio, dataFim);
+    res.json(result);
+  } catch (error) {
+    console.error('Erro no getAttendanceReport:', error);
+    res.status(500).json({ error: error.message });
+  }
+};
+
+exports.getTripsReport = async (req, res) => {
+  try {
+    const { dataInicio, dataFim } = req.query;
+    const result = await adminService.getTripsReport(dataInicio, dataFim);
+    res.json(result);
+  } catch (error) {
+    console.error('Erro no getTripsReport:', error);
     res.status(500).json({ error: error.message });
   }
 };

@@ -1,31 +1,65 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import LineDetailsModal from './LineDetailsModal';
 
-export default function LinePassengersModal({ isOpen, onClose, linha }) {
-  const [passageiros, setPassageiros] = useState([]);
+export default function LineDetailsModal({ isOpen, onClose, linha, onSave }) {
+  console.log('🔧 LineDetailsModal renderizado!', { isOpen, linha });
+  
+  const [formData, setFormData] = useState({
+    horario_inicio: '05:00',
+    horario_fim: '16:30'
+  });
   const [loading, setLoading] = useState(false);
-  const [showConfigModal, setShowConfigModal] = useState(false);
 
   useEffect(() => {
-    if (isOpen && linha) {
-      loadPassengers();
+    if (linha && isOpen) {
+      loadLineData();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, linha]);
+  }, [linha, isOpen]);
 
-  const loadPassengers = async () => {
+  const loadLineData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(
+        `http://localhost:3000/api/admin/linhas`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      
+      const linhaData = response.data.linhas?.find(l => l.id === linha.id);
+      if (linhaData) {
+        setFormData({
+          horario_inicio: linhaData.horario_inicio || '05:00',
+          horario_fim: linhaData.horario_fim || '16:30'
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados da linha:', error);
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get(
-        `http://localhost:3000/api/admin/linhas/${linha.id}/passageiros`,
+      
+      await axios.put(
+        `http://localhost:3000/api/admin/linhas/${linha.id}/configuracao`,
+        formData,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setPassageiros(response.data.passageiros || []);
+      
+      alert('✅ Configurações salvas com sucesso!');
+      if (onSave) onSave(formData);
+      onClose();
     } catch (error) {
-      console.error('Erro ao carregar passageiros:', error);
-      setPassageiros([]);
+      console.error('Erro ao salvar:', error);
+      alert('❌ Erro ao salvar configurações');
     } finally {
       setLoading(false);
     }
@@ -33,95 +67,86 @@ export default function LinePassengersModal({ isOpen, onClose, linha }) {
 
   if (!isOpen) return null;
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-6">
-      <div className="w-full max-w-5xl bg-gradient-to-br from-green-800 to-green-700 rounded-3xl shadow-2xl p-12">
-        <div className="flex items-center justify-between mb-8">
-          {/* Botão Voltar */}
-          <button
-            onClick={onClose}
-            className="text-white text-4xl hover:opacity-80 transition"
-          >
-            ↩
-          </button>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100] p-6">
+      <div className="w-full max-w-3xl bg-gradient-to-br from-green-800 to-green-700 rounded-3xl shadow-2xl p-12">
+        
+        {/* Botão Voltar */}
+        <button 
+          onClick={onClose}
+          className="text-white text-4xl hover:opacity-80 transition mb-4"
+        >
+          ↩
+        </button>
 
-          <h1 className="text-4xl font-bold text-white text-center flex-1">
-            Passageiros Linha {linha?.id}
-          </h1>
+        <h1 className="text-4xl font-bold text-white text-center mb-8">
+          Configurações Linha {linha?.id}
+        </h1>
 
-          {/* Botão Config */}
-          <button
-            onClick={() => setShowConfigModal(true)}
-            className="text-white text-4xl hover:opacity-80 transition"
-          >
-            ⚙️
-          </button>
-        </div>
+        <div className="space-y-6">
+          
+          {/* Contato WhatsApp */}
+          <div>
+            <p className="text-white text-center mb-3">
+              Contato WhatsApp da linha
+            </p>
+            <a
+              href="https://wa.me/5547992502857?text=Olá,%20podem%20me%20ajudar?"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center bg-green-50 hover:bg-white rounded-full px-6 py-4 transition cursor-pointer group"
+            >
+              <span className="text-green-700 text-2xl mr-3">📱</span>
+              <span className="flex-1 text-green-900 font-medium group-hover:text-green-700">
+                (47) 99250-2857
+              </span>
+              <span className="text-green-700 text-sm">Clique para enviar mensagem →</span>
+            </a>
+          </div>
 
-        {/* Tabela */}
-        <div className="bg-white/10 backdrop-blur rounded-2xl overflow-hidden">
-          <table className="w-full text-white">
-            <thead>
-              <tr className="border-b border-white/20">
-                <th className="px-6 py-4 text-left font-bold">Passageiro</th>
-                <th className="px-6 py-4 text-left font-bold">Ponto</th>
-                <th className="px-6 py-4 text-left font-bold">Universidade</th>
-                <th className="px-6 py-4 text-left font-bold">Curso</th>
-              </tr>
-            </thead>
-            <tbody>
-              {passageiros.length === 0 ? (
-                <tr>
-                  <td colSpan="4" className="text-center py-12 text-green-200">
-                    Nenhum passageiro aprovado nesta linha
-                  </td>
-                </tr>
-              ) : (
-                passageiros.map((p, idx) => (
-                  <tr
-                    key={idx}
-                    className="border-b border-white/10 hover:bg-white/5"
-                  >
-                    <td className="px-6 py-4">{p.nome}</td>
-                    <td className="px-6 py-4">{p.ponto_nome}</td>
-                    <td className="px-6 py-4">{p.universidade || 'N/A'}</td>
-                    <td className="px-6 py-4">{p.curso || 'N/A'}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+          {/* Horários */}
+          <div>
+            <p className="text-white text-center mb-3">
+              Horários de início e fim da linha
+            </p>
+            <div className="flex space-x-4">
+              <div className="flex-1 flex items-center bg-green-50 rounded-full px-6 py-4">
+                <span className="text-green-700 text-2xl mr-3">🕐</span>
+                <input
+                  type="time"
+                  name="horario_inicio"
+                  value={formData.horario_inicio}
+                  onChange={handleChange}
+                  className="flex-1 bg-transparent text-green-900 font-medium focus:outline-none"
+                />
+              </div>
 
-        {/* Botão OK */}
-        <div className="flex justify-center mt-8">
-          <button
-            onClick={onClose}
-            className="px-16 py-4 bg-green-50 hover:bg-white text-green-800 font-bold rounded-full transition shadow-lg"
-          >
-            OK
-          </button>
+              <div className="flex-1 flex items-center bg-green-50 rounded-full px-6 py-4">
+                <span className="text-green-700 text-2xl mr-3">🕐</span>
+                <input
+                  type="time"
+                  name="horario_fim"
+                  value={formData.horario_fim}
+                  onChange={handleChange}
+                  className="flex-1 bg-transparent text-green-900 font-medium focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Botão Salvar */}
+          <div className="flex justify-center pt-4">
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className="px-16 py-4 bg-green-50 hover:bg-white text-green-800 font-bold rounded-full transition shadow-lg disabled:opacity-50"
+            >
+              {loading ? 'Salvando...' : 'Salvar'}
+            </button>
+          </div>
+
         </div>
       </div>
-
-      {/* Modal de Configuração */}
-      <LineDetailsModal
-        isOpen={showConfigModal}
-        onClose={() => setShowConfigModal(false)}
-        linha={linha}
-        onSave={(data) => {
-          console.log('Configurações salvas:', data);
-          setShowConfigModal(false);
-        }}
-      />
     </div>
   );
 }
