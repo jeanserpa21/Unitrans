@@ -23,14 +23,16 @@ const authRoutes = require('./routes/auth.routes');
 const passengerRoutes = require('./routes/passenger.routes');
 const driverRoutes = require('./routes/driver.routes');
 const adminRoutes = require('./routes/admin.routes');
-const viagemRoutes = require('./routes/viagem.routes'); // 👈 novo
+const viagemRoutes = require('./routes/viagem.routes');
+const notificacaoRoutes = require('./routes/notificacao.routes');
 
 // 🚏 Usar rotas
 app.use('/api/auth', authRoutes);
 app.use('/api/passageiros', passengerRoutes);
 app.use('/api/driver', driverRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/viagens', viagemRoutes); // 👈 novo
+app.use('/api/viagens', viagemRoutes);
+app.use('/api/notificacoes', notificacaoRoutes);
 
 // 🏠 Rota principal
 app.get('/', (req, res) => {
@@ -48,6 +50,43 @@ app.get('/health', (req, res) => {
     database: 'connected',
     timestamp: new Date().toISOString()
   });
+});
+
+// 🔧 ROTA TEMPORÁRIA - Setup do banco de dados
+app.get('/setup-database', async (req, res) => {
+  try {
+    const db = require('./config/database');
+    const fs = require('fs');
+    const path = require('path');
+
+    console.log('🔧 Iniciando setup do banco de dados...');
+
+    // 1. Criar tabelas (schema.sql)
+    console.log('📋 Criando tabelas...');
+    const schema = fs.readFileSync(path.join(__dirname, 'sql', 'schema.sql'), 'utf8');
+    await db.query(schema);
+    console.log('✅ Tabelas criadas!');
+
+    // 2. Inserir dados de teste (seed.sql)
+    console.log('🌱 Inserindo dados de teste...');
+    const seed = fs.readFileSync(path.join(__dirname, 'sql', 'seed.sql'), 'utf8');
+    await db.query(seed);
+    console.log('✅ Dados inseridos!');
+
+    res.json({
+      success: true,
+      message: '✅ Banco de dados configurado com sucesso!',
+      tabelas: 'Criadas',
+      dados: 'Inseridos'
+    });
+  } catch (error) {
+    console.error('❌ Erro no setup:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      stack: error.stack
+    });
+  }
 });
 
 // 🔍 Rotas de teste
@@ -80,11 +119,6 @@ app.get('/test/viagens', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-  const notificacaoRoutes = require('./routes/notificacao.routes');
-
-// ... outras rotas ...
-
-app.use('/api/notificacoes', notificacaoRoutes);
 
 // 🔧 ENDPOINT TEMPORÁRIO - Gerar hash correto
 app.post('/dev/gerar-hash', async (req, res) => {
