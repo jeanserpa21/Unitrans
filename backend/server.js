@@ -89,6 +89,46 @@ app.get('/setup-database', async (req, res) => {
   }
 });
 
+// 🔑 ROTA TEMPORÁRIA - Atualizar senhas com hash correto
+app.get('/update-passwords', async (req, res) => {
+  try {
+    const db = require('./config/database');
+    const bcrypt = require('bcrypt');
+
+    console.log('🔑 Gerando hashes de senhas...');
+
+    // Gerar hashes corretos
+    const adminHash = await bcrypt.hash('admin123', 10);
+    const motoristaHash = await bcrypt.hash('motorista123', 10);
+    const passageiroHash = await bcrypt.hash('passageiro123', 10);
+
+    console.log('📝 Atualizando senhas no banco...');
+
+    // Atualizar no banco
+    await db.query('UPDATE usuarios SET senha_hash = $1 WHERE email = $2', [adminHash, 'admin@unitrans.com']);
+    await db.query('UPDATE usuarios SET senha_hash = $1 WHERE papel = $2', [motoristaHash, 'MOTORISTA']);
+    await db.query('UPDATE usuarios SET senha_hash = $1 WHERE papel = $2', [passageiroHash, 'PASSAGEIRO']);
+
+    console.log('✅ Senhas atualizadas!');
+
+    res.json({
+      success: true,
+      message: '✅ Senhas atualizadas com sucesso!',
+      credenciais: {
+        admin: { email: 'admin@unitrans.com', senha: 'admin123' },
+        motorista: { exemplo: 'joao.motorista@unitrans.com', senha: 'motorista123' },
+        passageiro: { exemplo: 'ana@estudante.com', senha: 'passageiro123' }
+      }
+    });
+  } catch (error) {
+    console.error('❌ Erro ao atualizar senhas:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // 🔍 Rotas de teste
 app.get('/test/usuarios', async (req, res) => {
   try {
