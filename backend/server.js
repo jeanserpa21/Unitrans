@@ -89,6 +89,40 @@ app.get('/setup-database', async (req, res) => {
   }
 });
 
+// 🌟 ROTA TEMPORÁRIA - Popular com dados extras
+app.get('/seed-extra', async (req, res) => {
+  try {
+    const db = require('./config/database');
+    const fs = require('fs');
+    const path = require('path');
+
+    console.log('🌟 Inserindo dados extras...');
+
+    const seedExtra = fs.readFileSync(path.join(__dirname, 'sql', 'seed-extra.sql'), 'utf8');
+    await db.query(seedExtra);
+
+    console.log('✅ Dados extras inseridos!');
+
+    res.json({
+      success: true,
+      message: '✅ Dados extras inseridos com sucesso!',
+      novos_dados: {
+        motoristas: '+ 3 motoristas',
+        passageiros: '+ 15 passageiros',
+        linhas: '+ 3 linhas',
+        veiculos: '+ 3 veículos',
+        viagens: '+ viagens futuras e histórico'
+      }
+    });
+  } catch (error) {
+    console.error('❌ Erro:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
 // 🔑 ROTA TEMPORÁRIA - Atualizar senhas com hash correto
 app.get('/update-passwords', async (req, res) => {
   try {
