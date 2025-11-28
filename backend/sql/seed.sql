@@ -3,14 +3,17 @@ TRUNCATE TABLE logs, mensagens, solicitacoes_carona, passageiros_viagem, viagens
                 pontos, passageiros, motoristas, linhas, veiculos, universidades, usuarios 
 RESTART IDENTITY CASCADE;
 
+-- NOTA: As senhas serão atualizadas depois via /update-passwords
+-- Usando hash temporário aqui
+
 -- 1. Admin
 INSERT INTO usuarios (nome, email, senha_hash, papel, ativo) VALUES
-('Admin Sistema', 'admin@unitrans.com', '$2b$10$rZ7Q4XqXhZ4XqXqXqXqXqOHRKGbMF4pYz.wN3vK6yZ.5yBz8nXqXq', 'ADM', true);
+('Admin Sistema', 'admin@unitrans.com', 'temp', 'ADM', true);
 
--- 2. Motoristas (senha: moto123 para ambos)
+-- 2. Motoristas
 INSERT INTO usuarios (nome, email, senha_hash, papel, foto_url, ativo) VALUES
-('João Silva', 'joao.motorista@unitrans.com', '$2b$10$rZ7Q4XqXhZ4XqXqXqXqXqOHRKGbMF4pYz.wN3vK6yZ.5yBz8nXqXq', 'MOTORISTA', 'https://i.pravatar.cc/150?img=12', true),
-('Maria Santos', 'maria.motorista@unitrans.com', '$2b$10$rZ7Q4XqXhZ4XqXqXqXqXqOHRKGbMF4pYz.wN3vK6yZ.5yBz8nXqXq', 'MOTORISTA', 'https://i.pravatar.cc/150?img=5', true);
+('João Silva', 'joao.motorista@unitrans.com', 'temp', 'MOTORISTA', 'https://i.pravatar.cc/150?img=12', true),
+('Maria Santos', 'maria.motorista@unitrans.com', 'temp', 'MOTORISTA', 'https://i.pravatar.cc/150?img=5', true);
 
 INSERT INTO motoristas (usuario_id, cnh, ativo) VALUES
 (2, 'CNH123456789', true),
@@ -43,13 +46,13 @@ INSERT INTO pontos (linha_id, nome, latitude, longitude, ordem, raio_m) VALUES
 (2, 'Shopping Neumarkt', -26.9244, -49.0661, 2, 100),
 (2, 'Campus FURB', -26.9044, -49.0661, 3, 120);
 
--- 7. Passageiros (senha: pass123 para todos)
+-- 7. Passageiros
 INSERT INTO usuarios (nome, email, senha_hash, papel, foto_url, ativo) VALUES
-('Carlos Oliveira', 'carlos@estudante.com', '$2b$10$rZ7Q4XqXhZ4XqXqXqXqXqOHRKGbMF4pYz.wN3vK6yZ.5yBz8nXqXq', 'PASSAGEIRO', 'https://i.pravatar.cc/150?img=15', true),
-('Ana Costa', 'ana@estudante.com', '$2b$10$rZ7Q4XqXhZ4XqXqXqXqXqOHRKGbMF4pYz.wN3vK6yZ.5yBz8nXqXq', 'PASSAGEIRO', 'https://i.pravatar.cc/150?img=20', true),
-('Pedro Souza', 'pedro@estudante.com', '$2b$10$rZ7Q4XqXhZ4XqXqXqXqXqOHRKGbMF4pYz.wN3vK6yZ.5yBz8nXqXq', 'PASSAGEIRO', 'https://i.pravatar.cc/150?img=33', true),
-('Julia Lima', 'julia@estudante.com', '$2b$10$rZ7Q4XqXhZ4XqXqXqXqXqOHRKGbMF4pYz.wN3vK6yZ.5yBz8nXqXq', 'PASSAGEIRO', 'https://i.pravatar.cc/150?img=25', true),
-('Lucas Pereira', 'lucas@estudante.com', '$2b$10$rZ7Q4XqXhZ4XqXqXqXqXqOHRKGbMF4pYz.wN3vK6yZ.5yBz8nXqXq', 'PASSAGEIRO', 'https://i.pravatar.cc/150?img=51', true);
+('Carlos Oliveira', 'carlos@estudante.com', 'temp', 'PASSAGEIRO', 'https://i.pravatar.cc/150?img=15', true),
+('Ana Costa', 'ana@estudante.com', 'temp', 'PASSAGEIRO', 'https://i.pravatar.cc/150?img=20', true),
+('Pedro Souza', 'pedro@estudante.com', 'temp', 'PASSAGEIRO', 'https://i.pravatar.cc/150?img=33', true),
+('Julia Lima', 'julia@estudante.com', 'temp', 'PASSAGEIRO', 'https://i.pravatar.cc/150?img=25', true),
+('Lucas Pereira', 'lucas@estudante.com', 'temp', 'PASSAGEIRO', 'https://i.pravatar.cc/150?img=51', true);
 
 -- Passageiros aprovados (Linha 1: 3 passageiros, Linha 2: 2 passageiros)
 INSERT INTO passageiros (usuario_id, universidade_id, ponto_padrao_id, aprovado, aprovado_em, aprovado_por) VALUES
@@ -83,8 +86,3 @@ INSERT INTO mensagens (origem, remetente_id, linha_id, titulo, corpo) VALUES
 
 -- Resumo
 SELECT 'Dados de teste inseridos com sucesso!' as resultado;
-SELECT COUNT(*) as total_usuarios FROM usuarios;
-SELECT COUNT(*) as total_passageiros FROM passageiros;
-SELECT COUNT(*) as total_motoristas FROM motoristas;
-SELECT COUNT(*) as total_linhas FROM linhas;
-SELECT COUNT(*) as total_viagens FROM viagens;
