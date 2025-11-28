@@ -1,0 +1,41 @@
+Agora você pode usar esses comandos:
+🚀 Comandos principais:
+bashnpm run dev              # Iniciar servidor em modo desenvolvimento
+npm start                # Iniciar servidor em produção
+🗄️ Comandos de banco de dados:
+bashnpm run migrate          # Criar tabelas no banco
+npm run seed             # Inserir dados de teste
+npm run create-trips     # Criar viagens de hoje
+npm run update-passwords # Atualizar senhas no banco
+🧪 Comandos de teste:
+bashnpm run test:auth        # Testar login (admin, motorista, passageiro)
+npm run test:passenger   # Testar rotas do passageiro
+npm run test:driver      # Testar rotas do motorista
+npm run test:flow        # Testar fluxo completo (check-in/out)
+
+🎯 Sequência Recomendada para Usar:
+bash# 1. Criar viagens de hoje
+npm run create-trips
+
+# 2. Iniciar servidor
+npm run dev
+
+# 3. Em outro terminal, testar
+npm run test:flow
+
+💡 EXTRA: Script para Resetar Tudo
+Se quiser, posso criar um script que:
+
+Reseta o banco
+Recria as tabelas
+Insere dados de teste
+Cria viagens de hoje
+Atualiza senhas
+
+Tudo em um comando só!
+Quer que eu crie? 😊
+
+Agora rode:
+bashnpm run create-trips
+E depois:
+bashnpm run test:driver
